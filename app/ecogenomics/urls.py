@@ -10,7 +10,7 @@ from accounts.views import home_redirect
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # API routes
+    # API routes - Fixed path structure
     path('api/auth/', include('accounts.urls')),
     
     # Frontend routes

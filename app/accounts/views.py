@@ -48,7 +48,18 @@ def register_user(request):
     """
     logger.info(f"Registration attempt with data: {request.data}")
     
-    serializer = UserRegistrationSerializer(data=request.data)
+    # Ensure we're handling JSON data
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response({
+                'error': 'Invalid JSON data'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        data = request.data
+    
+    serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
         try:
             user = serializer.save()
@@ -87,7 +98,18 @@ def login_user(request):
     """
     logger.info(f"Login attempt for email: {request.data.get('email', 'unknown')}")
     
-    serializer = UserLoginSerializer(data=request.data)
+    # Ensure we're handling JSON data
+    if request.content_type == 'application/json':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response({
+                'error': 'Invalid JSON data'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        data = request.data
+    
+    serializer = UserLoginSerializer(data=data)
     if serializer.is_valid():
         try:
             user = serializer.validated_data['user']
@@ -120,7 +142,7 @@ def login_user(request):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # Log failed login attempt
-    email = request.data.get('email', '')
+    email = data.get('email', '')
     if email:
         LoginAttempt.objects.create(
             email=email,

@@ -14,7 +14,6 @@ api_urlpatterns = [
     path('api/profile/', views.user_profile, name='api_profile'),
     path('api/profile/update/', views.update_profile, name='api_update_profile'),
     path('api/password/change/', views.change_password, name='api_change_password'),
-    path('api/users/', views.UserListView.as_view(), name='api_user_list'),
 ]
 
 # Frontend URLs
