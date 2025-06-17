@@ -125,23 +125,27 @@ def logout_view(request):
     Handle logout and redirect to login page.
     """
     if request.method == 'POST':
-        # Handle API logout
+        # Handle logout
         if request.user.is_authenticated:
             try:
-                request.user.auth_token.delete()
+                # Delete auth token if exists
+                if hasattr(request.user, 'auth_token'):
+                    request.user.auth_token.delete()
             except:
                 pass
+            
+            # End Django session
             logout(request)
         
         # Check if it's an AJAX request
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'message': 'Logout successful'})
+            return JsonResponse({'message': 'Logout successful', 'redirect': '/accounts/login/'})
         
-        # Redirect to login page
+        # Redirect to login page with success message
         messages.success(request, 'You have been successfully logged out.')
         return redirect('accounts:login')
     
-    # GET request - just redirect to login
+    # GET request - redirect to login
     return redirect('accounts:login')
 
 

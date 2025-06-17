@@ -9,9 +9,9 @@ app_name = 'core'
 urlpatterns = [
     # Frontend routes
     path('', views.dashboard, name='dashboard'),
-    path('dashboard/', views.dashboard, name='dashboard'),
     path('projects/', views.projects_page, name='projects'),
     path('projects/<uuid:project_id>/', views.project_detail, name='project_detail'),
-    
-    # API routes will be added later
+    path('analytics/', views.analytics_page, name='analytics'),
+    path('data/', views.data_page, name='data'),
+    path('reports/', views.reports_page, name='reports'),
 ]

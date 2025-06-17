@@ -1,14 +1,23 @@
 {% extends 'base.html' %}
 
-{% block title %}Register - EcoGenomics Suite{% endblock %}
+{% block title %}Register - ETFASH{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
         <div>
+            <div class="flex justify-center mb-6">
+                {% load static %}
+                <div class="etfash-logo">
+                    <img src="{% static 'images/logo.svg' %}" alt="ETFASH" class="h-12 w-12">
+                </div>
+            </div>
             <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                Create your account
+                Join ETFASH
             </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Environmental & Genomic Analytics Platform
+            </p>
             <p class="mt-2 text-center text-sm text-gray-600">
                 Or
                 <a href="{% url 'accounts:login' %}" class="font-medium text-emerald-600 hover:text-emerald-500">
@@ -140,7 +149,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         if (response.ok) {
             // Store token and redirect
             localStorage.setItem('authToken', result.token);
-            window.location.href = '/';
+            window.location.href = '/dashboard/';
         } else {
             // Show errors
             let errorText = '';

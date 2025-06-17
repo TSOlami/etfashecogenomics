@@ -51,3 +51,30 @@ def project_detail(request, project_id):
         'project': project,
     }
     return render(request, 'core/project_detail.html', context)
+
+
+@login_required
+def analytics_page(request):
+    """Analytics page."""
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'core/analytics.html', context)
+
+
+@login_required
+def data_page(request):
+    """Data management page."""
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'core/data.html', context)
+
+
+@login_required
+def reports_page(request):
+    """Reports page."""
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'core/reports.html', context)
