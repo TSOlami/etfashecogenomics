@@ -6,17 +6,17 @@ from . import views
 
 app_name = 'accounts'
 
-# API URLs
+# API URLs - These should be accessed via /api/auth/
 api_urlpatterns = [
-    path('api/register/', views.register_user, name='api_register'),
-    path('api/login/', views.login_user, name='api_login'),
-    path('api/logout/', views.logout_user, name='api_logout'),
-    path('api/profile/', views.user_profile, name='api_profile'),
-    path('api/profile/update/', views.update_profile, name='api_update_profile'),
-    path('api/password/change/', views.change_password, name='api_change_password'),
+    path('register/', views.register_user, name='api_register'),
+    path('login/', views.login_user, name='api_login'),
+    path('logout/', views.logout_user, name='api_logout'),
+    path('profile/', views.user_profile, name='api_profile'),
+    path('profile/update/', views.update_profile, name='api_update_profile'),
+    path('password/change/', views.change_password, name='api_change_password'),
 ]
 
-# Frontend URLs
+# Frontend URLs - These render HTML templates
 frontend_urlpatterns = [
     path('login/', views.login_page, name='login'),
     path('register/', views.register_page, name='register'),
@@ -24,4 +24,5 @@ frontend_urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 ]
 
-urlpatterns = api_urlpatterns + frontend_urlpatterns
+# Export only API patterns for inclusion in main URLs
+urlpatterns = api_urlpatterns

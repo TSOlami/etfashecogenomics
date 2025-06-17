@@ -40,24 +40,34 @@ def get_client_ip(request):
     return ip
 
 
+# ============================================================================
+# API VIEWS - These return JSON responses
+# ============================================================================
+
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
     """
-    Register a new user.
+    API endpoint for user registration - returns JSON only.
     """
-    logger.info(f"Registration attempt with data: {request.data}")
+    logger.info(f"API Registration attempt from IP: {get_client_ip(request)}")
+    logger.info(f"Request content type: {request.content_type}")
+    logger.info(f"Request data: {request.data}")
     
-    # Ensure we're handling JSON data
+    # Handle both JSON and form data
     if request.content_type == 'application/json':
         try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error: {str(e)}")
             return Response({
-                'error': 'Invalid JSON data'
+                'error': 'Invalid JSON data',
+                'detail': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
     else:
         data = request.data
+    
+    logger.info(f"Processed data: {data}")
     
     serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
@@ -75,39 +85,53 @@ def register_user(request):
             
             logger.info(f"User {user.email} registered successfully")
             
-            return Response({
+            response_data = {
                 'message': 'User registered successfully',
                 'user': UserProfileSerializer(user).data,
-                'token': token.key
-            }, status=status.HTTP_201_CREATED)
+                'token': token.key,
+                'success': True
+            }
+            
+            return Response(response_data, status=status.HTTP_201_CREATED)
+            
         except Exception as e:
             logger.error(f"Error during user registration: {str(e)}")
             return Response({
-                'error': 'Registration failed due to server error'
+                'error': 'Registration failed due to server error',
+                'detail': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     logger.warning(f"Registration failed with errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'errors': serializer.errors,
+        'success': False
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_user(request):
     """
-    Login user and return token.
+    API endpoint for user login - returns JSON only.
     """
-    logger.info(f"Login attempt for email: {request.data.get('email', 'unknown')}")
+    logger.info(f"API Login attempt from IP: {get_client_ip(request)}")
+    logger.info(f"Request content type: {request.content_type}")
     
-    # Ensure we're handling JSON data
+    # Handle both JSON and form data
     if request.content_type == 'application/json':
         try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
+            data = json.loads(request.body) if request.body else {}
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error: {str(e)}")
             return Response({
-                'error': 'Invalid JSON data'
+                'error': 'Invalid JSON data',
+                'detail': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
     else:
         data = request.data
+    
+    email = data.get('email', 'unknown')
+    logger.info(f"Login attempt for email: {email}")
     
     serializer = UserLoginSerializer(data=data)
     if serializer.is_valid():
@@ -130,20 +154,24 @@ def login_user(request):
             
             logger.info(f"User {user.email} logged in successfully")
             
-            return Response({
+            response_data = {
                 'message': 'Login successful',
                 'user': UserProfileSerializer(user).data,
-                'token': token.key
-            }, status=status.HTTP_200_OK)
+                'token': token.key,
+                'success': True
+            }
+            
+            return Response(response_data, status=status.HTTP_200_OK)
+            
         except Exception as e:
             logger.error(f"Error during user login: {str(e)}")
             return Response({
-                'error': 'Login failed due to server error'
+                'error': 'Login failed due to server error',
+                'detail': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # Log failed login attempt
-    email = data.get('email', '')
-    if email:
+    if email != 'unknown':
         LoginAttempt.objects.create(
             email=email,
             ip_address=get_client_ip(request),
@@ -152,51 +180,31 @@ def login_user(request):
         )
     
     logger.warning(f"Login failed for email: {email} with errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        'errors': serializer.errors,
+        'success': False
+    }, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
 @permission_classes([permissions.IsAuthenticated])
 def logout_user(request):
     """
-    Logout user by deleting token.
+    API endpoint for user logout - returns JSON only.
     """
     try:
         request.user.auth_token.delete()
         logger.info(f"User {request.user.email} logged out successfully")
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        return Response({
+            'message': 'Logout successful',
+            'success': True
+        }, status=status.HTTP_200_OK)
     except Exception as e:
         logger.error(f"Error during logout: {str(e)}")
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
-
-
-def logout_view(request):
-    """
-    Handle logout and redirect to login page.
-    """
-    if request.method == 'POST':
-        # Handle logout
-        if request.user.is_authenticated:
-            try:
-                # Delete auth token if exists
-                if hasattr(request.user, 'auth_token'):
-                    request.user.auth_token.delete()
-            except:
-                pass
-            
-            # End Django session
-            logout(request)
-        
-        # Check if it's an AJAX request
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'message': 'Logout successful', 'redirect': '/accounts/login/'})
-        
-        # Redirect to login page with success message
-        messages.success(request, 'You have been successfully logged out.')
-        return redirect('accounts:login')
-    
-    # GET request - redirect to login
-    return redirect('accounts:login')
+        return Response({
+            'message': 'Logout successful',
+            'success': True
+        }, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])
@@ -240,16 +248,10 @@ def change_password(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UserListView(generics.ListAPIView):
-    """
-    List all users (admin only).
-    """
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAdminUser]
+# ============================================================================
+# FRONTEND VIEWS - These render HTML templates
+# ============================================================================
 
-
-# Frontend Views
 @ensure_csrf_cookie
 def login_page(request):
     """Render login page."""
@@ -270,6 +272,35 @@ def register_page(request):
 def profile_page(request):
     """Render user profile page."""
     return render(request, 'accounts/profile.html')
+
+
+def logout_view(request):
+    """
+    Handle logout and redirect to login page.
+    """
+    if request.method == 'POST':
+        # Handle logout
+        if request.user.is_authenticated:
+            try:
+                # Delete auth token if exists
+                if hasattr(request.user, 'auth_token'):
+                    request.user.auth_token.delete()
+            except:
+                pass
+            
+            # End Django session
+            logout(request)
+        
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'message': 'Logout successful', 'redirect': '/accounts/login/'})
+        
+        # Redirect to login page with success message
+        messages.success(request, 'You have been successfully logged out.')
+        return redirect('accounts:login')
+    
+    # GET request - redirect to login
+    return redirect('accounts:login')
 
 
 # Redirect root to dashboard if authenticated, otherwise to login
