@@ -10,7 +10,7 @@
         <p class="mt-2 text-gray-600">Advanced environmental and genomic data analysis</p>
     </div>
 
-    <!-- Tab Navigation -->
+    <!-- Tab Navigation - Exactly like demo -->
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6">
@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Genus Chart
     const genusCtx = document.getElementById('genusChart').getContext('2d');
     new Chart(genusCtx, {
-        type: 'horizontalBar',
+        type: 'bar',
         data: {
             labels: ['Pseudomonas', 'Bacillus', 'Streptomyces', 'Escherichia', 'Lactobacillus'],
             datasets: [{
@@ -216,6 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            indexAxis: 'y',
             scales: {
                 x: {
                     beginAtZero: true
@@ -279,7 +280,7 @@ function generateHeatmap(containerId, rows, cols) {
         const intensity = Math.floor(value * 255);
         const color = `rgb(${255 - intensity}, ${255 - intensity/2}, 255)`;
         
-        cell.className = 'heatmap-cell w-8 h-8 rounded cursor-pointer tooltip';
+        cell.className = 'heatmap-cell w-8 h-8 rounded cursor-pointer';
         cell.style.backgroundColor = color;
         cell.title = `Value: ${value.toFixed(3)}`;
         

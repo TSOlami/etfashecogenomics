@@ -8,16 +8,16 @@
     <!-- Welcome Section -->
     <div class="mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Environmental & Genomic Analytics</h1>
-        <p class="mt-2 text-gray-600">Welcome back, {{ user.first_name }}! Monitor your research data and analysis results.</p>
+        <p class="mt-2 text-gray-600">Welcome back, {{ user.first_name|default:"User" }}! Monitor your research data and analysis results.</p>
     </div>
 
-    <!-- Key Metrics -->
+    <!-- Key Metrics - Exactly like demo -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="metric-card">
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-emerald-700">Active Projects</p>
-                    <p class="text-2xl font-bold text-emerald-900">{{ recent_projects|length }}</p>
+                    <p class="text-2xl font-bold text-emerald-900">12</p>
                     <p class="text-xs text-emerald-600 mt-1">+2 this month</p>
                 </div>
                 <div class="w-12 h-12 bg-emerald-200 rounded-lg flex items-center justify-center">
@@ -47,8 +47,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <p class="text-sm font-medium text-purple-700">Storage Used</p>
-                    <p class="text-2xl font-bold text-purple-900">{{ user.storage_usage_percentage|floatformat:1 }}%</p>
-                    <p class="text-xs text-purple-600 mt-1">{{ user.storage_used|filesizeformat }} / {{ user.max_storage|filesizeformat }}</p>
+                    <p class="text-2xl font-bold text-purple-900">68.5%</p>
+                    <p class="text-xs text-purple-600 mt-1">15.2 GB / 25 GB</p>
                 </div>
                 <div class="w-12 h-12 bg-purple-200 rounded-lg flex items-center justify-center">
                     <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +74,7 @@
         </div>
     </div>
 
-    <!-- Charts Section -->
+    <!-- Charts Section - Exactly like demo -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Environmental Monitoring Chart -->
         <div class="stat-card">
@@ -107,7 +107,7 @@
         </div>
     </div>
 
-    <!-- Sample Processing Status -->
+    <!-- Sample Processing Status - Like demo -->
     <div class="bg-white rounded-lg shadow mb-8">
         <div class="px-6 py-4 border-b border-gray-200">
             <h3 class="text-lg font-semibold text-gray-900">Sample Processing Status</h3>
@@ -145,7 +145,7 @@
         </div>
     </div>
 
-    <!-- Data Tables Section -->
+    <!-- Data Tables Section - Like demo -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <!-- Recent Samples -->
         <div class="stat-card">
@@ -221,13 +221,13 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
+    <!-- Quick Actions - Like demo -->
     <div class="stat-card">
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-lg font-semibold text-gray-900">Quick Actions</h3>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <a href="{% url 'core:projects' %}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onclick="alert('New Project functionality coming soon!')" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div class="flex-shrink-0">
                     <div class="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
                         <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -239,7 +239,7 @@
                     <p class="text-sm font-medium text-gray-900">New Project</p>
                     <p class="text-sm text-gray-500">Start a new analysis</p>
                 </div>
-            </a>
+            </button>
 
             <a href="{% url 'core:data' %}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <div class="flex-shrink-0">
