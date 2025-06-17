@@ -3,6 +3,7 @@ Views for the core app.
 """
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.db import models
 from .models import Project
 
 
@@ -38,9 +39,13 @@ def project_detail(request, project_id):
     """Project detail page."""
     project = get_object_or_404(
         Project,
-        id=project_id,
-        models.Q(owner=request.user) | models.Q(collaborators=request.user)
+        id=project_id
     )
+    
+    # Check if user has access to this project
+    if not (project.owner == request.user or request.user in project.collaborators.all()):
+        from django.http import Http404
+        raise Http404("Project not found")
     
     context = {
         'project': project,
