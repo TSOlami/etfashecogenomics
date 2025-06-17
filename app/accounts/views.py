@@ -13,6 +13,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
+from django.http import JsonResponse
 import json
 
 from .models import User, LoginAttempt
@@ -117,6 +118,31 @@ def logout_user(request):
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
     except:
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+
+def logout_view(request):
+    """
+    Handle logout and redirect to login page.
+    """
+    if request.method == 'POST':
+        # Handle API logout
+        if request.user.is_authenticated:
+            try:
+                request.user.auth_token.delete()
+            except:
+                pass
+            logout(request)
+        
+        # Check if it's an AJAX request
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'message': 'Logout successful'})
+        
+        # Redirect to login page
+        messages.success(request, 'You have been successfully logged out.')
+        return redirect('accounts:login')
+    
+    # GET request - just redirect to login
+    return redirect('accounts:login')
 
 
 @api_view(['GET'])

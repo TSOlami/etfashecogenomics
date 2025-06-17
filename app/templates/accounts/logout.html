@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Logged Out - EcoGenomics Suite{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <div class="mx-auto h-24 w-24 text-emerald-500 mb-4">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Successfully Logged Out
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Thank you for using EcoGenomics Suite. Your session has been ended securely.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <a href="{% url 'accounts:login' %}" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white eco-gradient hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Sign In Again
+            </a>
+            <a href="{% url 'accounts:register' %}" class="group relative w-full flex justify-center py-3 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500">
+                Create New Account
+            </a>
+        </div>
+        
+        <div class="text-center">
+            <p class="text-xs text-gray-500">
+                Need help? <a href="#" class="text-emerald-600 hover:text-emerald-500">Contact Support</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

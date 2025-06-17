@@ -22,6 +22,7 @@ frontend_urlpatterns = [
     path('login/', views.login_page, name='login'),
     path('register/', views.register_page, name='register'),
     path('profile/', views.profile_page, name='profile'),
+    path('logout/', views.logout_view, name='logout'),
 ]
 
 urlpatterns = api_urlpatterns + frontend_urlpatterns
