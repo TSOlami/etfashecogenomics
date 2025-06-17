@@ -15,6 +15,7 @@ from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
 import json
+import logging
 
 from .models import User, LoginAttempt
 from .serializers import (
@@ -24,6 +25,9 @@ from .serializers import (
     UserProfileDetailSerializer,
     PasswordChangeSerializer
 )
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 def get_client_ip(request):
@@ -42,25 +46,36 @@ def register_user(request):
     """
     Register a new user.
     """
+    logger.info(f"Registration attempt with data: {request.data}")
+    
     serializer = UserRegistrationSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.save()
-        token, created = Token.objects.get_or_create(user=user)
-        
-        # Log successful registration
-        LoginAttempt.objects.create(
-            email=user.email,
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            success=True
-        )
-        
-        return Response({
-            'message': 'User registered successfully',
-            'user': UserProfileSerializer(user).data,
-            'token': token.key
-        }, status=status.HTTP_201_CREATED)
+        try:
+            user = serializer.save()
+            token, created = Token.objects.get_or_create(user=user)
+            
+            # Log successful registration
+            LoginAttempt.objects.create(
+                email=user.email,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                success=True
+            )
+            
+            logger.info(f"User {user.email} registered successfully")
+            
+            return Response({
+                'message': 'User registered successfully',
+                'user': UserProfileSerializer(user).data,
+                'token': token.key
+            }, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error(f"Error during user registration: {str(e)}")
+            return Response({
+                'error': 'Registration failed due to server error'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    logger.warning(f"Registration failed with errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -70,29 +85,39 @@ def login_user(request):
     """
     Login user and return token.
     """
+    logger.info(f"Login attempt for email: {request.data.get('email', 'unknown')}")
+    
     serializer = UserLoginSerializer(data=request.data)
     if serializer.is_valid():
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        
-        # Update last login info
-        user.last_login = timezone.now()
-        user.last_login_ip = get_client_ip(request)
-        user.save(update_fields=['last_login', 'last_login_ip'])
-        
-        # Log successful login
-        LoginAttempt.objects.create(
-            email=user.email,
-            ip_address=get_client_ip(request),
-            user_agent=request.META.get('HTTP_USER_AGENT', ''),
-            success=True
-        )
-        
-        return Response({
-            'message': 'Login successful',
-            'user': UserProfileSerializer(user).data,
-            'token': token.key
-        }, status=status.HTTP_200_OK)
+        try:
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            
+            # Update last login info
+            user.last_login = timezone.now()
+            user.last_login_ip = get_client_ip(request)
+            user.save(update_fields=['last_login', 'last_login_ip'])
+            
+            # Log successful login
+            LoginAttempt.objects.create(
+                email=user.email,
+                ip_address=get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', ''),
+                success=True
+            )
+            
+            logger.info(f"User {user.email} logged in successfully")
+            
+            return Response({
+                'message': 'Login successful',
+                'user': UserProfileSerializer(user).data,
+                'token': token.key
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Error during user login: {str(e)}")
+            return Response({
+                'error': 'Login failed due to server error'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     # Log failed login attempt
     email = request.data.get('email', '')
@@ -104,6 +129,7 @@ def login_user(request):
             success=False
         )
     
+    logger.warning(f"Login failed for email: {email} with errors: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -115,8 +141,10 @@ def logout_user(request):
     """
     try:
         request.user.auth_token.delete()
+        logger.info(f"User {request.user.email} logged out successfully")
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
-    except:
+    except Exception as e:
+        logger.error(f"Error during logout: {str(e)}")
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 

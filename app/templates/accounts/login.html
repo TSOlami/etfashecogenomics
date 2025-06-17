@@ -90,8 +90,14 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     const password = document.getElementById('password').value;
     const errorDiv = document.getElementById('errorMessage');
     
+    // Clear previous errors
+    errorDiv.classList.add('hidden');
+    errorDiv.textContent = '';
+    
     try {
         const csrfToken = getCSRFToken();
+        console.log('Sending login request...');
+        
         const response = await fetch('/api/auth/login/', {
             method: 'POST',
             headers: {
@@ -101,15 +107,27 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             body: JSON.stringify({ email, password })
         });
         
+        console.log('Response status:', response.status);
+        
         const data = await response.json();
+        console.log('Response data:', data);
         
         if (response.ok) {
             // Store token and redirect
-            localStorage.setItem('authToken', data.token);
-            window.location.href = '/dashboard/';
+            if (data.token) {
+                localStorage.setItem('authToken', data.token);
+                console.log('Login successful, redirecting...');
+                window.location.href = '/dashboard/';
+            } else {
+                console.error('No token in response:', data);
+                errorDiv.textContent = 'Login successful but no authentication token received.';
+                errorDiv.classList.remove('hidden');
+            }
         } else {
             // Show error
-            errorDiv.textContent = data.detail || 'Login failed. Please check your credentials.';
+            console.error('Login failed:', data);
+            const errorMessage = data.detail || data.non_field_errors?.[0] || 'Login failed. Please check your credentials.';
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove('hidden');
         }
     } catch (error) {

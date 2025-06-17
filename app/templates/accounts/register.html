@@ -133,8 +133,14 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     // Remove CSRF token from data (it's sent in headers)
     delete data.csrfmiddlewaretoken;
     
+    // Clear previous errors
+    errorDiv.classList.add('hidden');
+    errorDiv.textContent = '';
+    
     try {
         const csrfToken = getCSRFToken();
+        console.log('Sending registration request...', data);
+        
         const response = await fetch('/api/auth/register/', {
             method: 'POST',
             headers: {
@@ -144,24 +150,44 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             body: JSON.stringify(data)
         });
         
+        console.log('Response status:', response.status);
+        
         const result = await response.json();
+        console.log('Response data:', result);
         
         if (response.ok) {
-            // Store token and redirect
-            localStorage.setItem('authToken', result.token);
-            window.location.href = '/dashboard/';
+            // Check if we have a token in the response
+            if (result.token) {
+                // Store token and redirect
+                localStorage.setItem('authToken', result.token);
+                console.log('Registration successful, redirecting...');
+                window.location.href = '/dashboard/';
+            } else {
+                console.error('No token in response:', result);
+                errorDiv.textContent = 'Registration successful but no authentication token received.';
+                errorDiv.classList.remove('hidden');
+            }
         } else {
             // Show errors
+            console.error('Registration failed:', result);
             let errorText = '';
             if (typeof result === 'object') {
+                // Handle field-specific errors
                 for (const [field, errors] of Object.entries(result)) {
                     if (Array.isArray(errors)) {
                         errorText += `${field}: ${errors.join(', ')}\n`;
+                    } else if (typeof errors === 'string') {
+                        errorText += `${field}: ${errors}\n`;
                     }
                 }
             } else {
-                errorText = 'Registration failed. Please try again.';
+                errorText = result.detail || 'Registration failed. Please try again.';
             }
+            
+            if (!errorText.trim()) {
+                errorText = 'Registration failed. Please check your information and try again.';
+            }
+            
             errorDiv.textContent = errorText;
             errorDiv.classList.remove('hidden');
         }
