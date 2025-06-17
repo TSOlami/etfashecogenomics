@@ -8,13 +8,13 @@ app_name = 'accounts'
 
 # API URLs
 api_urlpatterns = [
-    path('register/', views.register_user, name='api_register'),
-    path('login/', views.login_user, name='api_login'),
-    path('logout/', views.logout_user, name='api_logout'),
-    path('profile/', views.user_profile, name='api_profile'),
-    path('profile/update/', views.update_profile, name='api_update_profile'),
-    path('password/change/', views.change_password, name='api_change_password'),
-    path('users/', views.UserListView.as_view(), name='api_user_list'),
+    path('api/register/', views.register_user, name='api_register'),
+    path('api/login/', views.login_user, name='api_login'),
+    path('api/logout/', views.logout_user, name='api_logout'),
+    path('api/profile/', views.user_profile, name='api_profile'),
+    path('api/profile/update/', views.update_profile, name='api_update_profile'),
+    path('api/password/change/', views.change_password, name='api_change_password'),
+    path('api/users/', views.UserListView.as_view(), name='api_user_list'),
 ]
 
 # Frontend URLs
