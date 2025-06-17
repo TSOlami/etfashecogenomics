@@ -137,12 +137,9 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     errorDiv.classList.add('hidden');
     errorDiv.textContent = '';
     
-    console.log('Sending registration request to /api/auth/register/');
-    console.log('Data:', data);
-    
     try {
         const csrfToken = getCSRFToken();
-        console.log('CSRF Token:', csrfToken);
+        console.log('Sending registration request...', data);
         
         const response = await fetch('/api/auth/register/', {
             method: 'POST',
@@ -154,21 +151,11 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         });
         
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Expected JSON but got:', contentType);
-            console.error('Response text:', text.substring(0, 500));
-            throw new Error('Server returned HTML instead of JSON. Check server logs.');
-        }
         
         const result = await response.json();
         console.log('Response data:', result);
         
-        if (response.ok && result.success) {
+        if (response.ok) {
             // Check if we have a token in the response
             if (result.token) {
                 // Store token and redirect
@@ -184,20 +171,17 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             // Show errors
             console.error('Registration failed:', result);
             let errorText = '';
-            
-            if (result.errors) {
+            if (typeof result === 'object') {
                 // Handle field-specific errors
-                for (const [field, errors] of Object.entries(result.errors)) {
+                for (const [field, errors] of Object.entries(result)) {
                     if (Array.isArray(errors)) {
                         errorText += `${field}: ${errors.join(', ')}\n`;
                     } else if (typeof errors === 'string') {
                         errorText += `${field}: ${errors}\n`;
                     }
                 }
-            } else if (result.error) {
-                errorText = result.error;
             } else {
-                errorText = 'Registration failed. Please check your information and try again.';
+                errorText = result.detail || 'Registration failed. Please try again.';
             }
             
             if (!errorText.trim()) {
@@ -209,7 +193,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         }
     } catch (error) {
         console.error('Registration error:', error);
-        errorDiv.textContent = `An error occurred: ${error.message}`;
+        errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     }
 });

@@ -94,12 +94,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     errorDiv.classList.add('hidden');
     errorDiv.textContent = '';
     
-    console.log('Sending login request to /api/auth/login/');
-    console.log('Email:', email);
-    
     try {
         const csrfToken = getCSRFToken();
-        console.log('CSRF Token:', csrfToken);
+        console.log('Sending login request...');
         
         const response = await fetch('/api/auth/login/', {
             method: 'POST',
@@ -111,21 +108,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         });
         
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            const text = await response.text();
-            console.error('Expected JSON but got:', contentType);
-            console.error('Response text:', text.substring(0, 500));
-            throw new Error('Server returned HTML instead of JSON. Check server logs.');
-        }
         
         const data = await response.json();
         console.log('Response data:', data);
         
-        if (response.ok && data.success) {
+        if (response.ok) {
             // Store token and redirect
             if (data.token) {
                 localStorage.setItem('authToken', data.token);
@@ -139,29 +126,13 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         } else {
             // Show error
             console.error('Login failed:', data);
-            let errorMessage = '';
-            
-            if (data.errors) {
-                // Handle field-specific errors
-                for (const [field, errors] of Object.entries(data.errors)) {
-                    if (Array.isArray(errors)) {
-                        errorMessage += `${errors.join(', ')} `;
-                    } else if (typeof errors === 'string') {
-                        errorMessage += `${errors} `;
-                    }
-                }
-            } else if (data.error) {
-                errorMessage = data.error;
-            } else {
-                errorMessage = 'Login failed. Please check your credentials.';
-            }
-            
-            errorDiv.textContent = errorMessage.trim();
+            const errorMessage = data.detail || data.non_field_errors?.[0] || 'Login failed. Please check your credentials.';
+            errorDiv.textContent = errorMessage;
             errorDiv.classList.remove('hidden');
         }
     } catch (error) {
         console.error('Login error:', error);
-        errorDiv.textContent = `An error occurred: ${error.message}`;
+        errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     }
 });

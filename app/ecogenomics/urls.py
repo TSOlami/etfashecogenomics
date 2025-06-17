@@ -6,16 +6,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from accounts.views import home_redirect
-from accounts import urls as accounts_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     
-    # API routes - Properly separated
-    path('api/auth/', include(accounts_urls.api_urlpatterns)),
+    # API routes - Fixed path structure
+    path('api/auth/', include('accounts.urls')),
     
-    # Frontend routes - HTML templates
-    path('accounts/', include(accounts_urls.frontend_urlpatterns)),
+    # Frontend routes
+    path('accounts/', include('accounts.urls')),  # Frontend auth routes
     path('', home_redirect, name='home'),  # Root redirect
     path('dashboard/', include('core.urls')),  # Dashboard routes
 ]
