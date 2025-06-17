@@ -148,7 +148,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
-# CSRF Settings
+# CSRF Settings - More permissive for API
 CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript access to CSRF cookie
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_TRUSTED_ORIGINS = [
@@ -156,6 +156,12 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'https://localhost:8000',
     'https://127.0.0.1:8000',
+]
+
+# Disable CSRF for API endpoints
+CSRF_EXEMPT_URLS = [
+    r'^/api/auth/register/$',
+    r'^/api/auth/login/$',
 ]
 
 # Celery Configuration (optional for now)
@@ -183,7 +189,7 @@ X_FRAME_OPTIONS = 'DENY'
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
 
-# Logging
+# Logging - Enhanced for debugging
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -192,10 +198,19 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'debug.log',
             'formatter': 'verbose',
         },
     },
@@ -210,7 +225,12 @@ LOGGING = {
             'propagate': False,
         },
         'accounts': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': False,
         },

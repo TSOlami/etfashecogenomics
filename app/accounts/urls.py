@@ -6,7 +6,7 @@ from . import views
 
 app_name = 'accounts'
 
-# API URLs
+# API URLs - These must be exact matches
 api_urlpatterns = [
     path('api/register/', views.register_user, name='api_register'),
     path('api/login/', views.login_user, name='api_login'),

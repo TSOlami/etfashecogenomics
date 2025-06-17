@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
 import json
 import logging
 
@@ -40,24 +41,30 @@ def get_client_ip(request):
     return ip
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register_user(request):
     """
     Register a new user.
     """
-    logger.info(f"Registration attempt with data: {request.data}")
+    logger.info(f"Registration request received - Method: {request.method}")
+    logger.info(f"Content-Type: {request.content_type}")
+    logger.info(f"Request headers: {dict(request.headers)}")
     
-    # Ensure we're handling JSON data
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return Response({
-                'error': 'Invalid JSON data'
-            }, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        data = request.data
+    # Handle different content types
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.data
+        
+        logger.info(f"Parsed data: {data}")
+    except Exception as e:
+        logger.error(f"Error parsing request data: {str(e)}")
+        return JsonResponse({
+            'error': 'Invalid request data format'
+        }, status=400)
     
     serializer = UserRegistrationSerializer(data=data)
     if serializer.is_valid():
@@ -75,39 +82,48 @@ def register_user(request):
             
             logger.info(f"User {user.email} registered successfully")
             
-            return Response({
+            response_data = {
                 'message': 'User registered successfully',
                 'user': UserProfileSerializer(user).data,
                 'token': token.key
-            }, status=status.HTTP_201_CREATED)
+            }
+            
+            return JsonResponse(response_data, status=201)
+            
         except Exception as e:
             logger.error(f"Error during user registration: {str(e)}")
-            return Response({
-                'error': 'Registration failed due to server error'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({
+                'error': 'Registration failed due to server error',
+                'details': str(e)
+            }, status=500)
     
     logger.warning(f"Registration failed with errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse(serializer.errors, status=400)
 
 
+@csrf_exempt
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def login_user(request):
     """
     Login user and return token.
     """
-    logger.info(f"Login attempt for email: {request.data.get('email', 'unknown')}")
+    logger.info(f"Login request received - Method: {request.method}")
+    logger.info(f"Content-Type: {request.content_type}")
     
-    # Ensure we're handling JSON data
-    if request.content_type == 'application/json':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return Response({
-                'error': 'Invalid JSON data'
-            }, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        data = request.data
+    # Handle different content types
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.data
+        
+        logger.info(f"Login attempt for email: {data.get('email', 'unknown')}")
+    except Exception as e:
+        logger.error(f"Error parsing login data: {str(e)}")
+        return JsonResponse({
+            'error': 'Invalid request data format'
+        }, status=400)
     
     serializer = UserLoginSerializer(data=data)
     if serializer.is_valid():
@@ -130,16 +146,20 @@ def login_user(request):
             
             logger.info(f"User {user.email} logged in successfully")
             
-            return Response({
+            response_data = {
                 'message': 'Login successful',
                 'user': UserProfileSerializer(user).data,
                 'token': token.key
-            }, status=status.HTTP_200_OK)
+            }
+            
+            return JsonResponse(response_data, status=200)
+            
         except Exception as e:
             logger.error(f"Error during user login: {str(e)}")
-            return Response({
-                'error': 'Login failed due to server error'
-            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return JsonResponse({
+                'error': 'Login failed due to server error',
+                'details': str(e)
+            }, status=500)
     
     # Log failed login attempt
     email = data.get('email', '')
@@ -152,7 +172,7 @@ def login_user(request):
         )
     
     logger.warning(f"Login failed for email: {email} with errors: {serializer.errors}")
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return JsonResponse(serializer.errors, status=400)
 
 
 @api_view(['POST'])
@@ -164,10 +184,10 @@ def logout_user(request):
     try:
         request.user.auth_token.delete()
         logger.info(f"User {request.user.email} logged out successfully")
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        return JsonResponse({'message': 'Logout successful'}, status=200)
     except Exception as e:
         logger.error(f"Error during logout: {str(e)}")
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        return JsonResponse({'message': 'Logout successful'}, status=200)
 
 
 def logout_view(request):
@@ -238,15 +258,6 @@ def change_password(request):
         Token.objects.filter(user=request.user).delete()
         return Response({'message': 'Password changed successfully. Please login again.'})
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserListView(generics.ListAPIView):
-    """
-    List all users (admin only).
-    """
-    queryset = User.objects.all()
-    serializer_class = UserProfileSerializer
-    permission_classes = [permissions.IsAdminUser]
 
 
 # Frontend Views
