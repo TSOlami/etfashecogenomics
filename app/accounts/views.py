@@ -172,14 +172,14 @@ class UserListView(generics.ListAPIView):
 def login_page(request):
     """Render login page."""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('core:dashboard')
     return render(request, 'accounts/login.html')
 
 
 def register_page(request):
     """Render registration page."""
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        return redirect('core:dashboard')
     return render(request, 'accounts/register.html')
 
 
@@ -189,7 +189,10 @@ def profile_page(request):
     return render(request, 'accounts/profile.html')
 
 
-@login_required
-def dashboard(request):
-    """Render main dashboard."""
-    return render(request, 'core/dashboard.html')
+# Redirect root to dashboard if authenticated, otherwise to login
+def home_redirect(request):
+    """Redirect home page based on authentication status."""
+    if request.user.is_authenticated:
+        return redirect('core:dashboard')
+    else:
+        return redirect('accounts:login')
