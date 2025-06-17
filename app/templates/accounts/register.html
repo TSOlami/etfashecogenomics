@@ -18,6 +18,7 @@
         </div>
         
         <form id="registerForm" class="mt-8 space-y-6">
+            {% csrf_token %}
             <div class="space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -86,6 +87,33 @@
 </div>
 
 <script>
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to get CSRF token
+function getCSRFToken() {
+    // Try to get from form first
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    // Fallback to cookie
+    return getCookie('csrftoken');
+}
+
 document.getElementById('registerForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -93,12 +121,16 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const data = Object.fromEntries(formData);
     const errorDiv = document.getElementById('errorMessage');
     
+    // Remove CSRF token from data (it's sent in headers)
+    delete data.csrfmiddlewaretoken;
+    
     try {
+        const csrfToken = getCSRFToken();
         const response = await fetch('/api/auth/register/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify(data)
         });
@@ -125,6 +157,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             errorDiv.classList.remove('hidden');
         }
     } catch (error) {
+        console.error('Registration error:', error);
         errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     }

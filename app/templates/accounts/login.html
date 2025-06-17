@@ -18,6 +18,7 @@
         </div>
         
         <form id="loginForm" class="mt-8 space-y-6">
+            {% csrf_token %}
             <div class="rounded-md shadow-sm -space-y-px">
                 <div>
                     <label for="email" class="sr-only">Email address</label>
@@ -46,6 +47,33 @@
 </div>
 
 <script>
+// Function to get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Function to get CSRF token
+function getCSRFToken() {
+    // Try to get from form first
+    const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfInput) {
+        return csrfInput.value;
+    }
+    // Fallback to cookie
+    return getCookie('csrftoken');
+}
+
 document.getElementById('loginForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     
@@ -54,11 +82,12 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     const errorDiv = document.getElementById('errorMessage');
     
     try {
+        const csrfToken = getCSRFToken();
         const response = await fetch('/api/auth/login/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ email, password })
         });
@@ -75,6 +104,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
             errorDiv.classList.remove('hidden');
         }
     } catch (error) {
+        console.error('Login error:', error);
         errorDiv.textContent = 'An error occurred. Please try again.';
         errorDiv.classList.remove('hidden');
     }

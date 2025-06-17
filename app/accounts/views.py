@@ -10,8 +10,9 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.utils.decorators import method_decorator
+from django.middleware.csrf import get_token
 import json
 
 from .models import User, LoginAttempt
@@ -169,6 +170,7 @@ class UserListView(generics.ListAPIView):
 
 
 # Frontend Views
+@ensure_csrf_cookie
 def login_page(request):
     """Render login page."""
     if request.user.is_authenticated:
@@ -176,6 +178,7 @@ def login_page(request):
     return render(request, 'accounts/login.html')
 
 
+@ensure_csrf_cookie
 def register_page(request):
     """Render registration page."""
     if request.user.is_authenticated:
