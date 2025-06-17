@@ -1,0 +1,16 @@
+{
+  "name": "ecogenomics-suite",
+  "version": "1.0.0",
+  "description": "Environmental & Genomic Analytics Platform Demo",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
