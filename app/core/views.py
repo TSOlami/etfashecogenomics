@@ -78,3 +78,21 @@ def reports_page(request):
         'user': request.user,
     }
     return render(request, 'core/reports.html', context)
+
+
+@login_required
+def sample_tracking_page(request):
+    """Sample tracking page."""
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'core/sample_tracking.html', context)
+
+
+@login_required
+def quality_control_page(request):
+    """Quality control page."""
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'core/quality_control.html', context)

@@ -14,4 +14,6 @@ urlpatterns = [
     path('analytics/', views.analytics_page, name='analytics'),
     path('data/', views.data_page, name='data'),
     path('reports/', views.reports_page, name='reports'),
+    path('samples/', views.sample_tracking_page, name='sample_tracking'),
+    path('quality/', views.quality_control_page, name='quality_control'),
 ]
