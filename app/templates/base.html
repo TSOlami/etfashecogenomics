@@ -113,11 +113,18 @@
             color: #059669 !important;
             background-color: #f0fdf4;
         }
+
+        /* Auth page specific styles */
+        .auth-page {
+            background: linear-gradient(135deg, #059669 0%, #0284c7 50%, #1e40af 100%);
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50">
+    <!-- Only show navigation if not on auth pages -->
+    {% if not request.resolver_match.url_name in 'login,register' %}
     <!-- Navigation -->
     <nav class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -170,6 +177,7 @@
             </div>
         </div>
     </nav>
+    {% endif %}
 
     <!-- Main Content -->
     <main>
@@ -186,6 +194,8 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Only show footer if not on auth pages -->
+    {% if not request.resolver_match.url_name in 'login,register' %}
     <!-- Footer -->
     <footer class="bg-white border-t mt-12">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -195,6 +205,7 @@
             </div>
         </div>
     </footer>
+    {% endif %}
 
     <script>
         function toggleUserMenu() {
