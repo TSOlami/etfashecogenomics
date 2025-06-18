@@ -1,1 +1,0 @@
-# EcoGenomics Suite - Main Package
